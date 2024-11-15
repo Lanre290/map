@@ -1,12 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import {
-  BiDetail,
-  BiLayer,
-  BiRocket,
-  BiSearch,
-  BiSolidDetail,
-  BiStreetView,
-} from "react-icons/bi";
+import { BiLayer, BiSearch, BiStreetView } from "react-icons/bi";
 import lasuLogo from "./../assets/lasu.jpg";
 import { HiLocationMarker } from "react-icons/hi";
 import { BsPersonWalking } from "react-icons/bs";
@@ -26,7 +19,11 @@ const Index = () => {
   >("walking");
   const [showTravelMethod, setShowTravelMehtod] = useState<boolean>(false);
   const [userLocation, setUserLocation] = useState<locationInterface>(
-    null as unknown as locationInterface
+    {
+      name: "user def location",
+      lat: 6.466362124948927,
+      lng: 3.2003106126389302,
+    }
   );
   const [selectedLocation, setSelectedLocation] = useState<locationInterface>({
     name: "science Complex",
@@ -37,19 +34,6 @@ const Index = () => {
   const [streetView, setStreetView] = useState<"normal" | "detailed">(
     "detailed"
   );
-
-  // Watch user's location
-  useEffect(() => {
-    const watchId = navigator.geolocation.watchPosition((position) => {
-      const newLocation = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude,
-      };
-      setUserLocation(newLocation);
-    });
-
-    return () => navigator.geolocation.clearWatch(watchId); // Clear watcher on cleanup
-  }, []);
 
   const locations: locationInterface[] = [
     { name: "Burba Marwa", lat: 6.4731069928423395, lng: 3.2015184369190073 },
@@ -89,11 +73,10 @@ const Index = () => {
     { name: "Chapel", lat: 6.465088832434565, lng: 3.1989557939732234 },
     { name: "Hardware Lab", lat: 6.464380578459994, lng: 3.1997646863299116 },
     { name: "Physics lab", lat: 6.464659105424986, lng: 3.201346431291005 },
-    { name: "Lasu Radio", lat: 6.471160095540121, lng: 3.199978753621533 },
+    { name: "Lasu Radio", lat: 6.472812716519268,lng:  3.200558016376725 },
     {
       name: "3-in-1 Education",
-      lat: 36.473043068903322,
-      lng: 3.1998925644167424,
+      lat: 6.473152631738322, lng: 3.199601619019211
     },
     { name: "CBT Center", lat: 6.4750885979536905, lng: 3.2012627829273184 },
     { name: "FMS Toilet", lat: 6.476145902669435, lng: 3.2000881539430672 },
@@ -106,7 +89,13 @@ const Index = () => {
     { name: "Makanjuola Hall", lat: 6.466128, lng: 3.2013806 },
     { name: "Library", lat: 6.464858120817215, lng: 3.20065026876411 },
     { name: "Book shop", lat: 6.464992323883617, lng: 3.200339698553843 },
-    // { name: "Library", lat: 37.7848, lng: -122.4094 },
+    { name: "Julian Hostel", lat: 6.470652852809963, lng: 3.1957265700758 },
+    { name: "Mass comm", lat: 6.4722600478125125, lng: 3.1997651061351653 },
+    { name: "New health center", lat: 6.4657366170004735, lng: 3.2015953170227482 },
+    { name: "Faculty of social science", lat: 6.475364733426094, lng: 3.1989487452080314 },
+    { name: "Faculty of law", lat: 6.465965419779776, lng: 3.2019749351804934 },
+    // { name: "Julian Hostel", lat: 6.470652852809963, lng: 3.1957265700758 },
+    // { name: "Julian Hostel", lat: 6.470652852809963, lng: 3.1957265700758 },
   ];
 
   const handleInDivTravelMethodClick = (e: any) => {
@@ -131,6 +120,37 @@ const Index = () => {
   const [coordinates, setCoordinates] = useState<[number, number]>([
     6.471211177998569, 3.199952782857913,
   ]);
+
+  useEffect(() => {
+    // Watch user's location
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+
+        let userLoc: locationInterface = {};
+        userLoc.lat = latitude;
+        userLoc.lng = longitude;
+        console.log(userLoc);
+        setUserLocation(userLoc);
+      },
+      (error) => {
+        console.error("Error watching location:", error);
+      },
+      { enableHighAccuracy: true, maximumAge: 0 }
+    );
+
+
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+    };
+  }, []);
+
+  useEffect(() => {
+    console.log(selectedLocation);
+  }, [selectedLocation])
+
+  console.log(userLocation);
+
   useEffect(() => {
     const getCurrentLocation = () => {
       if (navigator.geolocation) {
@@ -181,28 +201,29 @@ const Index = () => {
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          // const { latitude, longitude } = position.coords;
+          const { latitude, longitude } = position.coords; // Get the actual user latitude and longitude from the position object
           let location = {
-            lng: 6.471211177998569,
-            lat: 3.199952782857913,
+            lng: longitude, // Use longitude from the position
+            lat: latitude,  // Use latitude from the position
           };
-          setUserLocation(location); // Save user location
-
-          // Center the map to user's location
+          setUserLocation(location); // Save the user location to the state
+      
+          
           map.flyTo({
-            center: [location.lat, location.lng],
+            center: [selectedLocation.lng as any, selectedLocation.lat as any],
             zoom: 13,
           });
         },
         () => {
-          toast.error("Error getting location");
+          toast.error("Error getting location"); // Handle error if geolocation fails
         },
         {
           enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 0,
+          timeout: 5000,  // Maximum time to wait for a response
+          maximumAge: 0,  // Disables using a cached position
         }
       );
+      
 
       map.addControl(new mapboxgl.NavigationControl());
 
@@ -287,6 +308,33 @@ const Index = () => {
         );
         marker.setPopup(popup);
       });
+
+      
+      const userMarker = new mapboxgl.Marker()
+      .setLngLat([(userLocation as any).lng, (userLocation as any).lat]) // Optional chaining to prevent errors
+      .addTo(map);
+
+      const label = document.createElement("div");
+      label.className = "map-label";
+      label.innerText = "You";
+
+      // Create a marker with a label for the user location
+      const userLabelMarker = new mapboxgl.Marker(label)
+        .setLngLat([(userLocation as any).lng, (userLocation as any).lat]) // Optional chaining to prevent errors
+        .addTo(map);
+
+      // Create a popup for the user marker
+      const userMarkerPopup = new mapboxgl.Popup({ offset: 25 }).setText("You");
+      userMarker.setPopup(userMarkerPopup);
+
+      // Update the user marker's position when userLocation changes
+      useEffect(() => {
+        if (userLocation && userLocation.lng && userLocation.lat) {
+          userMarker.setLngLat([userLocation.lng, userLocation.lat]);
+          userLabelMarker.setLngLat([userLocation.lng, userLocation.lat]); // Update label marker as well
+        }
+      }, [userLocation]);
+
 
       return () => {
         map.remove();
@@ -408,6 +456,7 @@ const Index = () => {
                 id=""
                 className={`w-8 h-8 accent-blue-700 bg-transparent border-2 border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 travel_radio`}
                 checked={travelMethod == "walking"}
+                readOnly
               />
             </div>
             <div
@@ -424,6 +473,7 @@ const Index = () => {
                 id=""
                 className={`w-8 h-8 accent-blue-700 bg-transparent border-2 border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 travel_radio`}
                 checked={travelMethod == "driving"}
+                readOnly
               />
             </div>
             <div
@@ -440,6 +490,7 @@ const Index = () => {
                 id=""
                 className={`w-8 h-8 accent-blue-700 bg-transparent border-2 border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 travel_radio`}
                 checked={travelMethod == "cycling"}
+                readOnly
               />
             </div>
           </div>
@@ -461,10 +512,9 @@ const Index = () => {
             {locations.map((location: locationInterface, index: number) => (
               <div
                 className={`flex flex-row justify-between items-center text-2xl p-3 cursor-pointer hover:bg-gray-200 rounded-2xl py-6`}
-                data-location={location}
                 onClick={() => {
-                  updateLocation;
                   setShowPlaces(false);
+                  setSelectedLocation(location);
                 }}
                 key={index}
               >
