@@ -112,10 +112,6 @@ const Index = () => {
     e.stopPropagation();
   };
 
-  const updateLocation = (e: any) => {
-    setSelectedLocation(e.target.dataset.location);
-  };
-
   const mapContainer = useRef(null);
   const [coordinates, setCoordinates] = useState<[number, number]>([
     6.471211177998569, 3.199952782857913,
@@ -228,9 +224,6 @@ const Index = () => {
       map.addControl(new mapboxgl.NavigationControl());
 
       if (userLocation) {
-        // Example: Empire State Building
-
-        // Fetch directions from Mapbox API
         const routeUrl = `https://api.mapbox.com/directions/v5/mapbox/${travelMethod}/${userLocation.lng},${userLocation.lat};${selectedLocation.lng},${selectedLocation.lat}?geometries=geojson&access_token=${apiKey}`;
 
         fetch(routeUrl)
@@ -238,36 +231,33 @@ const Index = () => {
           .then((data) => {
             const route = data.routes[0].geometry;
 
-            // Add the route as a GeoJSON source
             map.on("load", () => {
-              // Remove existing route layer if present
               if (map.getLayer("route")) {
                 map.removeLayer("route");
                 map.removeSource("route");
               }
 
-              // Add GeoJSON source with the route geometry and empty properties
               map.addSource("route", {
                 type: "geojson",
                 data: {
                   type: "Feature",
                   geometry: route,
-                  properties: {}, // Add an empty properties object to satisfy the GeoJSON structure
+                  properties: {},
                 },
               });
 
-              // map.addLayer({
-              //   id: '3d-buildings',
-              //   source: 'composite',
-              //   'source-layer': 'building',
-              //   type: 'fill-extrusion',
-              //   paint: {
-              //     'fill-extrusion-color': '#aaa',
-              //     'fill-extrusion-height': ['get', 'height'],
-              //     'fill-extrusion-base': ['get', 'min_height'],
-              //     'fill-extrusion-opacity': 0.6,
-              //   },
-              // });
+              map.addLayer({
+                id: '3d-buildings',
+                source: 'composite',
+                'source-layer': 'building',
+                type: 'fill-extrusion',
+                paint: {
+                  'fill-extrusion-color': '#aaa',
+                  'fill-extrusion-height': ['get', 'height'],
+                  'fill-extrusion-base': ['get', 'min_height'],
+                  'fill-extrusion-opacity': 0.6,
+                },
+              });
 
               // Add a layer to display the route
               map.addLayer({
@@ -281,28 +271,24 @@ const Index = () => {
               });
             });
           })
-          .catch((error) => {
-            console.error("Error fetching directions:", error);
+          .catch(() => {
+            toast.error("Error fetching directions:");
           });
       }
 
       locations.forEach((location: locationInterface) => {
-        // Create a marker for each location
         const marker = new mapboxgl.Marker()
           .setLngLat([location.lng as any, location.lat as any])
           .addTo(map);
 
-        // Create a custom HTML element for the label
         const label = document.createElement("div");
         label.className = "map-label" as any;
         label.innerText = location.name as any;
 
-        // Use custom labels next to the markers
         new mapboxgl.Marker(label)
           .setLngLat([location.lng as any, location.lat as any])
           .addTo(map);
 
-        // Add a popup with the name of the location
         const popup = new mapboxgl.Popup({ offset: 25 }).setText(
           location.name as any
         );
@@ -311,7 +297,7 @@ const Index = () => {
 
       
       const userMarker = new mapboxgl.Marker()
-      .setLngLat([(userLocation as any).lng, (userLocation as any).lat]) // Optional chaining to prevent errors
+      .setLngLat([(userLocation as any).lng, (userLocation as any).lat])
       .addTo(map);
 
       const label = document.createElement("div");
