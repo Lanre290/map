@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { BiSearch } from "react-icons/bi";
 import lasuLogo from "./../assets/lasu.jpg";
 import { HiLocationMarker } from "react-icons/hi";
-import { MdLightMode } from "react-icons/md";
 import { BsPersonWalking } from "react-icons/bs";
 import { IoBicycle, IoCar } from "react-icons/io5";
 import mapboxgl from "mapbox-gl";
@@ -252,7 +251,7 @@ const Index = () => {
         <div
           className={`w-full m-0 shadow-lg h-20 flex flex-row items-center gap-x-3 justify-between`}
         >
-          <div className={`flex flex-row`}>
+          <div className={`flex flex-row items-center`}>
             <img
               src={lasuLogo}
               className={`bg-center bg-no-repeat bg-cover w-14 h-14 mx-2`}
@@ -262,7 +261,7 @@ const Index = () => {
             >
               <input
                 type="text"
-                className={`bg-transparent text-gray-500 font-light p-2 focus:outline-none w-64`}
+                className={`bg-transparent text-gray-500 font-light p-2 focus:outline-none flex-grow md:w-64`}
                 placeholder="search..."
               />
               <button
@@ -273,48 +272,42 @@ const Index = () => {
                 ></BiSearch>
               </button>
             </form>
-            <button
-              className={`w-16 h-16 rounded-full text-gray-600 flex items-center justify-center bg-gray-50 hover:border-transparent hover:bg-gray-200 ml-2`}
-              title="Find a place"
-            >
-              <HiLocationMarker
-                className={`font-light text-gray-600 text-3xl`}
+            <div className="flex flex-col fixed bottom-5 right-5 z-50 shadow-lg p-2 rounded-3xl border border-gray-500 bg-gray-50 justify-center items-center md:shadow-none md:static md:rounded-none md:border-none md:flex-row md:bg-transparent">
+              <button
+                className={`w-16 h-16 rounded-full text-gray-600 flex items-center justify-center bg-gray-50 hover:border-transparent hover:bg-gray-200 ml-2`}
+                title="Find a place"
+              >
+                <HiLocationMarker
+                  className={`font-light text-gray-600 text-3xl`}
+                  onClick={() => {
+                    setShowPlaces(true);
+                  }}
+                ></HiLocationMarker>
+              </button>
+              <button
+                className={`w-16 h-16 rounded-full text-gray-600 flex items-center justify-center bg-gray-50 hover:border-transparent hover:bg-gray-200`}
                 onClick={() => {
-                  setShowPlaces(true);
+                  setShowTravelMehtod(true);
                 }}
-              ></HiLocationMarker>
-            </button>
-            <button
-              className={`w-16 h-16 rounded-full text-gray-600 flex items-center justify-center bg-gray-50 hover:border-transparent hover:bg-gray-200`}
-              onClick={() => {
-                setShowTravelMehtod(true);
-              }}
-            >
-              {travelMethod == "walking" && (
-                <BsPersonWalking
-                  className={`font-light text-gray-600 text-3xl`}
-                ></BsPersonWalking>
-              )}
-              {travelMethod == "cycling" && (
-                <IoBicycle
-                  className={`font-light text-gray-600 text-3xl`}
-                ></IoBicycle>
-              )}
-              {travelMethod == "driving" && (
-                <IoCar className={`font-light text-gray-600 text-3xl`}></IoCar>
-              )}
-            </button>
+              >
+                {travelMethod == "walking" && (
+                  <BsPersonWalking
+                    className={`font-light text-gray-600 text-3xl`}
+                  ></BsPersonWalking>
+                )}
+                {travelMethod == "cycling" && (
+                  <IoBicycle
+                    className={`font-light text-gray-600 text-3xl`}
+                  ></IoBicycle>
+                )}
+                {travelMethod == "driving" && (
+                  <IoCar className={`font-light text-gray-600 text-3xl`}></IoCar>
+                )}
+              </button>
+            </div>
           </div>
 
-          <div className="flex flex-row gap-x-2 mr-5">
-            <button
-              className={`w-16 h-16 rounded-full text-gray-600 flex items-center justify-center bg-gray-50 hover:border-transparent hover:bg-gray-200`}
-            >
-              <MdLightMode
-                className={`font-light text-gray-600 text-3xl`}
-              ></MdLightMode>
-            </button>
-          </div>
+        
         </div>
 
 
@@ -329,7 +322,7 @@ const Index = () => {
           onClick={closeTravelMethod}
         >
           <div
-            className={`p-5 bg-gray-50 rounded-3xl flex flex-col w-1/2 shadow-lg`}
+            className={`p-5 bg-gray-50 rounded-3xl flex flex-col w-11/12 md:w-1/2 shadow-lg`}
             onClick={handleInDivTravelMethodClick}
           >
             <div
@@ -390,7 +383,7 @@ const Index = () => {
           onClick={closePlaces}
         >
           <div
-            className={`p-5 bg-gray-50 rounded-3xl flex flex-col w-1/2 shadow-lg h-5/6 overflow-y-auto`}
+            className={`p-5 bg-gray-50 rounded-3xl flex flex-col w-11/12 md:w-1/2 shadow-lg h-5/6 overflow-y-auto`}
             onClick={handleInDivTravelMethodClick}
           >
             <h3 className="text-gray-700 font-light text-3xl mb-5 text-center">
