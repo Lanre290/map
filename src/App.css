@@ -1,0 +1,6 @@
+.travel_radio:not(:checked){
+  background-color: transparent;
+  accent-color: transparent;
+  color: transparent;
+  background: transparent;
+}
