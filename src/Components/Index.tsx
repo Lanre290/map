@@ -30,6 +30,10 @@ const Index = () => {
     lat: 6.466362124948927,
     lng: 3.2003106126389302,
   });
+  const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const userLabelMarkerRef = useRef<mapboxgl.Marker | null>(null);
+
+
   const [showPlaces, setShowPlaces] = useState<boolean>(false);
   const [streetView, setStreetView] = useState<"normal" | "detailed">(
     "detailed"
@@ -309,17 +313,11 @@ const Index = () => {
         .setLngLat([(userLocation as any).lng, (userLocation as any).lat]) // Optional chaining to prevent errors
         .addTo(map);
 
+      userLabelMarkerRef.current = userLabelMarker;
       // Create a popup for the user marker
       const userMarkerPopup = new mapboxgl.Popup({ offset: 25 }).setText("You");
       userMarker.setPopup(userMarkerPopup);
-
-      // Update the user marker's position when userLocation changes
-      useEffect(() => {
-        if (userLocation && userLocation.lng && userLocation.lat) {
-          userMarker.setLngLat([userLocation.lng, userLocation.lat]);
-          userLabelMarker.setLngLat([userLocation.lng, userLocation.lat]); // Update label marker as well
-        }
-      }, [userLocation]);
+      userMarkerRef.current = userMarker;
 
 
       return () => {
@@ -328,6 +326,14 @@ const Index = () => {
     };
     initializeMap();
   }, [travelMethod, selectedLocation, streetView]);
+
+
+  useEffect(() => {
+    if (userLocation && userLocation.lng && userLocation.lat) {
+      userMarkerRef.current?.setLngLat([userLocation.lng, userLocation.lat]);
+      userLabelMarkerRef.current?.setLngLat([userLocation.lng, userLocation.lat]); // Update label marker as well
+    }
+  }, [userLocation]);
 
   return (
     <>
