@@ -420,9 +420,8 @@ const Index = () => {
           </div>
         </div>
 
-        <div className="w-full h-full">
+        
           <div ref={mapContainer} style={{ height: "100%", width: "100%" }} />
-        </div>
       </div>
 
       {showTravelMethod && (
