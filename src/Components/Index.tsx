@@ -199,10 +199,10 @@ const Index = () => {
         (position) => {
           const { latitude, longitude } = position.coords; // Get the actual user latitude and longitude from the position object
           let location = {
-            lng: longitude, // Use longitude from the position
-            lat: latitude,  // Use latitude from the position
+            lng: longitude,
+            lat: latitude, 
           };
-          setUserLocation(location); // Save the user location to the state
+          setUserLocation(location);
       
           
           map.flyTo({
@@ -211,7 +211,7 @@ const Index = () => {
           });
         },
         () => {
-          toast.error("Error getting location"); // Handle error if geolocation fails
+          toast.error("Error getting location");
         },
         {
           enableHighAccuracy: true,
