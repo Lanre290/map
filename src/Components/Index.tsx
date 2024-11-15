@@ -1,5 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { BiSearch } from "react-icons/bi";
+import {
+  BiDetail,
+  BiLayer,
+  BiRocket,
+  BiSearch,
+  BiSolidDetail,
+  BiStreetView,
+} from "react-icons/bi";
 import lasuLogo from "./../assets/lasu.jpg";
 import { HiLocationMarker } from "react-icons/hi";
 import { BsPersonWalking } from "react-icons/bs";
@@ -21,14 +28,15 @@ const Index = () => {
   const [userLocation, setUserLocation] = useState<locationInterface>(
     null as unknown as locationInterface
   );
-  const [selectedLocation, setSelectedLocation] = useState<
-    locationInterface
-  >({
+  const [selectedLocation, setSelectedLocation] = useState<locationInterface>({
     name: "science Complex",
     lat: 6.466362124948927,
     lng: 3.2003106126389302,
   });
   const [showPlaces, setShowPlaces] = useState<boolean>(false);
+  const [streetView, setStreetView] = useState<"normal" | "detailed">(
+    "detailed"
+  );
 
   // Watch user's location
   useEffect(() => {
@@ -42,7 +50,6 @@ const Index = () => {
 
     return () => navigator.geolocation.clearWatch(watchId); // Clear watcher on cleanup
   }, []);
-
 
   const locations: locationInterface[] = [
     { name: "Burba Marwa", lat: 6.4731069928423395, lng: 3.2015184369190073 },
@@ -119,23 +126,11 @@ const Index = () => {
   const updateLocation = (e: any) => {
     setSelectedLocation(e.target.dataset.location);
   };
-  
 
   const mapContainer = useRef(null);
-  const [coordinates, setCoordinates] = useState<[number, number]>([6.471211177998569, 3.199952782857913]);
-
-  const apiKey = import.meta.env.VITE_MAPBOX_TOKEN; 
-  const getMapStyle = async () => {
-    if (!apiKey) {
-      toast.error('Mapbox API key is missing!');
-      return;
-    }
-    return 'mapbox://styles/mapbox/streets-v12';
-    // mapbox://styles/mapbox/streets-v11
-  };
-
-
-  mapboxgl.accessToken = apiKey as unknown as string;
+  const [coordinates, setCoordinates] = useState<[number, number]>([
+    6.471211177998569, 3.199952782857913,
+  ]);
   useEffect(() => {
     const getCurrentLocation = () => {
       if (navigator.geolocation) {
@@ -145,105 +140,160 @@ const Index = () => {
             setCoordinates([longitude, latitude]);
           },
           () => {
-            toast.error('Error getting location');
+            toast.error("Error getting location");
             setCoordinates([6.471211177998569, 3.199952782857913]);
           }
         );
       } else {
-        toast.error('Geolocation is not supported by this browser.');
+        toast.error("Geolocation is not supported by this browser.");
         setCoordinates([6.471211177998569, 3.199952782857913]);
       }
     };
 
     getCurrentLocation();
 
+    const apiKey = import.meta.env.VITE_MAPBOX_TOKEN;
+    const getMapStyle = async () => {
+      if (!apiKey) {
+        toast.error("Credentials missing!");
+        return;
+      }
+      // return 'mapbox://styles/mapbox/streets-v12';
+      // mapbox://styles/mapbox/streets-v11
+      return streetView == "detailed"
+        ? "mapbox://styles/mapbox/satellite-streets-v12"
+        : "mapbox://styles/mapbox/streets-v12";
+    };
+
+    mapboxgl.accessToken = apiKey as unknown as string;
+
     const initializeMap = async () => {
       const mapStyle = await getMapStyle();
-      if (!mapStyle) return;  // Don't initialize map if there's an error
+      if (!mapStyle) return; // Don't initialize map if there's an error
 
       const map = new mapboxgl.Map({
         container: mapContainer.current as any,
-        style: mapStyle,  // Use the style ID here
-        center: coordinates,  // Coordinates are now correctly typed as [number, number]
-        zoom: 14,
-        maxZoom: 30
+        style: mapStyle, // Use the style ID here
+        center: coordinates, // Coordinates are now correctly typed as [number, number]
+        zoom: 17,
+        maxZoom: 30,
       });
 
-      navigator.geolocation.getCurrentPosition((position) => {
-        const { latitude, longitude } = position.coords;
-        let location = {
-          lng: longitude,
-          lat: latitude
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          // const { latitude, longitude } = position.coords;
+          let location = {
+            lng: 6.471211177998569,
+            lat: 3.199952782857913,
+          };
+          setUserLocation(location); // Save user location
+
+          // Center the map to user's location
+          map.flyTo({
+            center: [location.lat, location.lng],
+            zoom: 13,
+          });
+        },
+        () => {
+          toast.error("Error getting location");
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0,
         }
-        setUserLocation(location); // Save user location
-  
-        // Center the map to user's location
-        map.flyTo({
-          center: [longitude, latitude],
-          zoom: 13,
-        });
-      }, () => {toast.error('Error getting location')}, {
-        enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 0,
-      } );
+      );
 
       map.addControl(new mapboxgl.NavigationControl());
 
-      if (userLocation) { // Example: Empire State Building
+      if (userLocation) {
+        // Example: Empire State Building
 
         // Fetch directions from Mapbox API
         const routeUrl = `https://api.mapbox.com/directions/v5/mapbox/${travelMethod}/${userLocation.lng},${userLocation.lat};${selectedLocation.lng},${selectedLocation.lat}?geometries=geojson&access_token=${apiKey}`;
-  
+
         fetch(routeUrl)
           .then((response) => response.json())
           .then((data) => {
             const route = data.routes[0].geometry;
-  
+
             // Add the route as a GeoJSON source
-            map.on('load', () => {
+            map.on("load", () => {
               // Remove existing route layer if present
-              if (map.getLayer('route')) {
-                map.removeLayer('route');
-                map.removeSource('route');
+              if (map.getLayer("route")) {
+                map.removeLayer("route");
+                map.removeSource("route");
               }
-            
+
               // Add GeoJSON source with the route geometry and empty properties
-              map.addSource('route', {
-                type: 'geojson',
+              map.addSource("route", {
+                type: "geojson",
                 data: {
-                  type: 'Feature',
+                  type: "Feature",
                   geometry: route,
-                  properties: {} // Add an empty properties object to satisfy the GeoJSON structure
+                  properties: {}, // Add an empty properties object to satisfy the GeoJSON structure
                 },
               });
-            
+
+              // map.addLayer({
+              //   id: '3d-buildings',
+              //   source: 'composite',
+              //   'source-layer': 'building',
+              //   type: 'fill-extrusion',
+              //   paint: {
+              //     'fill-extrusion-color': '#aaa',
+              //     'fill-extrusion-height': ['get', 'height'],
+              //     'fill-extrusion-base': ['get', 'min_height'],
+              //     'fill-extrusion-opacity': 0.6,
+              //   },
+              // });
+
               // Add a layer to display the route
               map.addLayer({
-                id: 'route',
-                type: 'line',
-                source: 'route',
+                id: "route",
+                type: "line",
+                source: "route",
                 paint: {
-                  'line-color': '#007cbf',
-                  'line-width': 5,
+                  "line-color": "#007cbf",
+                  "line-width": 5,
                 },
               });
             });
           })
           .catch((error) => {
-            console.error('Error fetching directions:', error);
+            console.error("Error fetching directions:", error);
           });
       }
 
+      locations.forEach((location: locationInterface) => {
+        // Create a marker for each location
+        const marker = new mapboxgl.Marker()
+          .setLngLat([location.lng as any, location.lat as any])
+          .addTo(map);
 
+        // Create a custom HTML element for the label
+        const label = document.createElement("div");
+        label.className = "map-label" as any;
+        label.innerText = location.name as any;
 
+        // Use custom labels next to the markers
+        new mapboxgl.Marker(label)
+          .setLngLat([location.lng as any, location.lat as any])
+          .addTo(map);
+
+        // Add a popup with the name of the location
+        const popup = new mapboxgl.Popup({ offset: 25 }).setText(
+          location.name as any
+        );
+        marker.setPopup(popup);
+      });
 
       return () => {
         map.remove();
       };
     };
     initializeMap();
-  }, [coordinates, selectedLocation]);
+  }, [travelMethod, selectedLocation, streetView]);
 
   return (
     <>
@@ -275,6 +325,26 @@ const Index = () => {
             <div className="flex flex-col fixed bottom-5 right-5 z-50 shadow-lg p-2 rounded-3xl border border-gray-500 bg-gray-50 justify-center items-center md:shadow-none md:static md:rounded-none md:border-none md:flex-row md:bg-transparent">
               <button
                 className={`w-16 h-16 rounded-full text-gray-600 flex items-center justify-center bg-gray-50 hover:border-transparent hover:bg-gray-200 ml-2`}
+                title="Switch street view"
+              >
+                {streetView == "normal" ? (
+                  <BiLayer
+                    className={`font-light text-gray-600 text-3xl`}
+                    onClick={() => {
+                      setStreetView("detailed");
+                    }}
+                  ></BiLayer>
+                ) : (
+                  <BiStreetView
+                    className={`font-light text-gray-600 text-3xl`}
+                    onClick={() => {
+                      setStreetView("normal");
+                    }}
+                  ></BiStreetView>
+                )}
+              </button>
+              <button
+                className={`w-16 h-16 rounded-full text-gray-600 flex items-center justify-center bg-gray-50 hover:border-transparent hover:bg-gray-200 ml-2`}
                 title="Find a place"
               >
                 <HiLocationMarker
@@ -301,18 +371,17 @@ const Index = () => {
                   ></IoBicycle>
                 )}
                 {travelMethod == "driving" && (
-                  <IoCar className={`font-light text-gray-600 text-3xl`}></IoCar>
+                  <IoCar
+                    className={`font-light text-gray-600 text-3xl`}
+                  ></IoCar>
                 )}
               </button>
             </div>
           </div>
-
-        
         </div>
 
-
         <div className="w-full h-full">
-          <div ref={mapContainer} style={{ height: '100%', width: '100%' }} />
+          <div ref={mapContainer} style={{ height: "100%", width: "100%" }} />
         </div>
       </div>
 
@@ -389,7 +458,7 @@ const Index = () => {
             <h3 className="text-gray-700 font-light text-3xl mb-5 text-center">
               Places on Campus
             </h3>
-            {locations.map((location: locationInterface, index:number) => (
+            {locations.map((location: locationInterface, index: number) => (
               <div
                 className={`flex flex-row justify-between items-center text-2xl p-3 cursor-pointer hover:bg-gray-200 rounded-2xl py-6`}
                 data-location={location}
@@ -410,7 +479,6 @@ const Index = () => {
           </div>
         </div>
       )}
-
     </>
   );
 };
