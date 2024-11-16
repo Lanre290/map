@@ -4,7 +4,7 @@ import lasuLogo from "./../assets/lasu.jpg";
 import { HiLocationMarker } from "react-icons/hi";
 import { BsPersonWalking } from "react-icons/bs";
 import { IoBicycle, IoCar } from "react-icons/io5";
-import mapboxgl, { Map } from "mapbox-gl";
+import mapboxgl from "mapbox-gl";
 import { toast } from "react-toastify";
 
 const Index = () => {
@@ -105,7 +105,7 @@ const Index = () => {
   const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const userLabelMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const mapContainer = useRef(null);
-  const mapRef = useRef<any>(null);
+  const mapRef = useRef(null);
 
   const handleInDivTravelMethodClick = (e: any) => {
     e.stopPropagation();
@@ -174,18 +174,6 @@ const Index = () => {
 
   console.log(userLocation);
 
-
-  const apiKey = import.meta.env.VITE_MAPBOX_TOKEN;
-    const getMapStyle = async () => {
-      if (!apiKey) {
-        toast.error("Credentials missing!");
-        return;
-      }
-      return streetView == "detailed"
-        ? "mapbox://styles/mapbox/satellite-streets-v12"
-        : "mapbox://styles/mapbox/outdoors-v12";
-    };
-
   useEffect(() => {
     const getCurrentLocation = () => {
       if (navigator.geolocation) {
@@ -207,6 +195,17 @@ const Index = () => {
   
     getCurrentLocation();
   
+    const apiKey = import.meta.env.VITE_MAPBOX_TOKEN;
+    const getMapStyle = async () => {
+      if (!apiKey) {
+        toast.error("Credentials missing!");
+        return;
+      }
+      return streetView == "detailed"
+        ? "mapbox://styles/mapbox/satellite-streets-v12"
+        : "mapbox://styles/mapbox/outdoors-v12";
+    };
+  
     mapboxgl.accessToken = apiKey as unknown as string;
   
     const initializeMap = async () => {
@@ -220,8 +219,6 @@ const Index = () => {
         zoom: 17,
         maxZoom: 30,
       });
-
-      mapRef.current = map;
   
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -253,6 +250,32 @@ const Index = () => {
 
       window.addEventListener('resize', () => {
         map.resize();
+      });
+  
+      map.on("load", () => {
+        if (!map.getSource("satellite") && streetView == 'detailed') {
+          map.addSource("satellite", {
+            type: "raster",
+            tiles: [
+              `https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=${apiKey}`,
+            ],
+            tileSize: 256,
+          });
+  
+          map.addLayer({
+            id: "satellite-layer",
+            type: "raster",
+            source: "satellite",
+          });
+        }
+  
+        // Adjust brightness and contrast for the raster layer
+        // map.setPaintProperty("satellite-layer", "raster-brightness-max", 1.5);
+        // map.setPaintProperty("satellite-layer", "raster-brightness-min", 0.8);
+        map.setPaintProperty("satellite-layer", "raster-contrast", 5);
+        map.setPaintProperty('satellite-layer', 'raster-resampling', 'nearest');
+        map.setPaintProperty('satellite-layer', 'raster-saturation', 0.1);
+        map.setPaintProperty('satellite-layer', 'raster-opacity', 1);
       });
   
       if (userLocation) {
@@ -338,40 +361,8 @@ const Index = () => {
 
     
     initializeMap();
-  }, [travelMethod, selectedLocation]);
-
-  useEffect(() => {
-    const QuickLoadMap = async () => {
-      mapRef.current.style = await getMapStyle();
-      mapRef.current.on("load", () => {
-        if (!mapRef.current.getSource("satellite") && streetView == 'detailed') {
-          mapRef.current.addSource("satellite", {
-            type: "raster",
-            tiles: [
-              `https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=${apiKey}`,
-            ],
-            tileSize: 256,
-          });
+  }, [travelMethod, selectedLocation, streetView]);
   
-          mapRef.current.addLayer({
-            id: "satellite-layer",
-            type: "raster",
-            source: "satellite",
-          });
-        }
-  
-        // Adjust brightness and contrast for the raster layer
-        // mapRef.current.setPaintProperty("satellite-layer", "raster-brightness-max", 1.5);
-        // mapRef.current.setPaintProperty("satellite-layer", "raster-brightness-min", 0.8);
-        mapRef.current.setPaintProperty("satellite-layer", "raster-contrast", 1);
-        mapRef.current.setPaintProperty('satellite-layer', 'raster-resampling', 'nearest');
-        mapRef.current.setPaintProperty('satellite-layer', 'raster-saturation', 0.1);
-        mapRef.current.setPaintProperty('satellite-layer', 'raster-opacity', 1);
-      });
-
-      QuickLoadMap();
-    }
-  }, [streetView]);
 
 
   useEffect(() => {
@@ -491,6 +482,10 @@ const Index = () => {
           </div>
         </div>
 
+          <div className="fixed z-50 top-24 right-14 rounded-3xl bg-gray-50 gap-x-2 text-gray-500 w-fit flex flex-row items-center p-3">
+            <HiLocationMarker className="text-gray-500"></HiLocationMarker>
+            {selectedLocation.name}
+          </div>
         
           <div ref={mapContainer} style={{ height: "100%", width: "100%" }} />
       </div>
