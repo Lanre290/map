@@ -98,7 +98,7 @@ const Index = () => {
     { name: "Mass comm", lat: 6.4722600478125125, lng: 3.1997651061351653 },
     { name: "New health center", lat: 6.4657366170004735, lng: 3.2015953170227482 },
     { name: "Faculty of social science", lat: 6.475364733426094, lng: 3.1989487452080314 },
-    { name: "Faculty of law", lat: 6.465965419779776, lng: 3.2019749351804934 },
+    { name: "Faculty of law", lat: 6.4674853055647015, lng: 3.2020847777720016 },
     // { name: "Julian Hostel", lat: 6.470652852809963, lng: 3.1957265700758 },
     // { name: "Julian Hostel", lat: 6.470652852809963, lng: 3.1957265700758 },
   ];
@@ -203,8 +203,8 @@ const Index = () => {
       // return 'mapbox://styles/mapbox/streets-v12';
       // mapbox://styles/mapbox/streets-v11
       return streetView == "detailed"
-        ? "mapbox://styles/mapbox/satellite-streets-v12"
-        : "mapbox://styles/mapbox/streets-v12"; // "mapbox://styles/mapbox/light-v10"
+        ? "mapbox://styles/mapbox/satellite-v9"  // mapbox://styles/mapbox/satellite-streets-v12
+        : "mapbox://styles/mapbox/outdoors-v12"; // "mapbox://styles/mapbox/light-v10"
     };
 
     mapboxgl.accessToken = apiKey as unknown as string;
@@ -247,6 +247,8 @@ const Index = () => {
       );
       
 
+      // map.setPaintProperty('raster-layer-id', 'raster-brightness-max', 0.9); // Increase brightness
+      // map.setPaintProperty('raster-layer-id', 'raster-contrast', 1); 
       map.addControl(new mapboxgl.NavigationControl());
 
       if (userLocation) {
@@ -272,18 +274,18 @@ const Index = () => {
                 },
               });
 
-              map.addLayer({
-                id: '3d-buildings',
-                source: 'composite',
-                'source-layer': 'building',
-                type: 'fill-extrusion',
-                paint: {
-                  'fill-extrusion-color': '#aaa',
-                  'fill-extrusion-height': ['get', 'height'],
-                  'fill-extrusion-base': ['get', 'min_height'],
-                  'fill-extrusion-opacity': 0.6,
-                },
-              });
+              // map.addLayer({
+              //   id: '3d-buildings',
+              //   source: 'composite',
+              //   'source-layer': 'building',
+              //   type: 'fill-extrusion',
+              //   paint: {
+              //     'fill-extrusion-color': '#aaa',
+              //     'fill-extrusion-height': ['get', 'height'],
+              //     'fill-extrusion-base': ['get', 'min_height'],
+              //     'fill-extrusion-opacity': 0.6,
+              //   },
+              // });
 
 
 
