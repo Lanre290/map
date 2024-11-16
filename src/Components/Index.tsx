@@ -105,6 +105,7 @@ const Index = () => {
   const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const userLabelMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const mapContainer = useRef(null);
+  const mapRef = useRef(null);
 
   const handleInDivTravelMethodClick = (e: any) => {
     e.stopPropagation();
@@ -252,7 +253,7 @@ const Index = () => {
       });
   
       map.on("load", () => {
-        if (!map.getSource("satellite")) {
+        if (!map.getSource("satellite") && streetView == 'detailed') {
           map.addSource("satellite", {
             type: "raster",
             tiles: [
