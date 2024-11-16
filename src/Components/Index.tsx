@@ -241,6 +241,15 @@ const Index = () => {
       );
   
       map.addControl(new mapboxgl.NavigationControl());
+
+      map.on('resize', () => {
+        console.log('Map is resized');
+        map.resize();
+      });
+
+      window.addEventListener('resize', () => {
+        map.resize();
+      });
   
       map.on("load", () => {
         if (!map.getSource("satellite")) {
@@ -348,6 +357,8 @@ const Index = () => {
         map.remove();
       };
     };
+
+    
     initializeMap();
   }, [travelMethod, selectedLocation, streetView]);
   
