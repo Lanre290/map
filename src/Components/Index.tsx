@@ -285,6 +285,10 @@ const Index = () => {
                 },
               });
 
+
+map.setPaintProperty('raster-layer-id', 'raster-brightness-max', 1.5);  // Increase brightness
+  map.setPaintProperty('raster-layer-id', 'raster-contrast', 1.2);
+
               // Add a layer to display the route
               map.addLayer({
                 id: "route",
