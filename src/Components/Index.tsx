@@ -4,7 +4,7 @@ import lasuLogo from "./../assets/lasu.jpg";
 import { HiLocationMarker } from "react-icons/hi";
 import { BsPersonWalking } from "react-icons/bs";
 import { IoBicycle, IoCar } from "react-icons/io5";
-import mapboxgl from "mapbox-gl";
+import mapboxgl, { Map } from "mapbox-gl";
 import { toast } from "react-toastify";
 
 const Index = () => {
@@ -105,7 +105,7 @@ const Index = () => {
   const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const userLabelMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const mapContainer = useRef(null);
-  const mapRef = useRef(null);
+  const mapRef = useRef<any>(null);
 
   const handleInDivTravelMethodClick = (e: any) => {
     e.stopPropagation();
@@ -174,6 +174,18 @@ const Index = () => {
 
   console.log(userLocation);
 
+
+  const apiKey = import.meta.env.VITE_MAPBOX_TOKEN;
+    const getMapStyle = async () => {
+      if (!apiKey) {
+        toast.error("Credentials missing!");
+        return;
+      }
+      return streetView == "detailed"
+        ? "mapbox://styles/mapbox/satellite-streets-v12"
+        : "mapbox://styles/mapbox/outdoors-v12";
+    };
+
   useEffect(() => {
     const getCurrentLocation = () => {
       if (navigator.geolocation) {
@@ -195,17 +207,6 @@ const Index = () => {
   
     getCurrentLocation();
   
-    const apiKey = import.meta.env.VITE_MAPBOX_TOKEN;
-    const getMapStyle = async () => {
-      if (!apiKey) {
-        toast.error("Credentials missing!");
-        return;
-      }
-      return streetView == "detailed"
-        ? "mapbox://styles/mapbox/satellite-streets-v12"
-        : "mapbox://styles/mapbox/outdoors-v12";
-    };
-  
     mapboxgl.accessToken = apiKey as unknown as string;
   
     const initializeMap = async () => {
@@ -219,6 +220,8 @@ const Index = () => {
         zoom: 17,
         maxZoom: 30,
       });
+
+      mapRef.current = map;
   
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -361,8 +364,13 @@ const Index = () => {
 
     
     initializeMap();
-  }, [travelMethod, selectedLocation, streetView]);
-  
+  }, [travelMethod, selectedLocation]);
+
+  useEffect(() => {
+    async () => {
+      mapRef.current.style = await getMapStyle();
+    }
+  }, [streetView]);
 
 
   useEffect(() => {
