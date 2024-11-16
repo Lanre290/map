@@ -255,32 +255,6 @@ const Index = () => {
         map.resize();
       });
   
-      map.on("load", () => {
-        if (!map.getSource("satellite") && streetView == 'detailed') {
-          map.addSource("satellite", {
-            type: "raster",
-            tiles: [
-              `https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=${apiKey}`,
-            ],
-            tileSize: 256,
-          });
-  
-          map.addLayer({
-            id: "satellite-layer",
-            type: "raster",
-            source: "satellite",
-          });
-        }
-  
-        // Adjust brightness and contrast for the raster layer
-        // map.setPaintProperty("satellite-layer", "raster-brightness-max", 1.5);
-        // map.setPaintProperty("satellite-layer", "raster-brightness-min", 0.8);
-        map.setPaintProperty("satellite-layer", "raster-contrast", 5);
-        map.setPaintProperty('satellite-layer', 'raster-resampling', 'nearest');
-        map.setPaintProperty('satellite-layer', 'raster-saturation', 0.1);
-        map.setPaintProperty('satellite-layer', 'raster-opacity', 1);
-      });
-  
       if (userLocation) {
         const routeUrl = `https://api.mapbox.com/directions/v5/mapbox/${travelMethod}/${userLocation.lng},${userLocation.lat};${selectedLocation.lng},${selectedLocation.lat}?geometries=geojson&access_token=${apiKey}`;
   
@@ -367,8 +341,35 @@ const Index = () => {
   }, [travelMethod, selectedLocation]);
 
   useEffect(() => {
-    async () => {
+    const QuickLoadMap = async () => {
       mapRef.current.style = await getMapStyle();
+      mapRef.current.on("load", () => {
+        if (!mapRef.current.getSource("satellite") && streetView == 'detailed') {
+          mapRef.current.addSource("satellite", {
+            type: "raster",
+            tiles: [
+              `https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=${apiKey}`,
+            ],
+            tileSize: 256,
+          });
+  
+          mapRef.current.addLayer({
+            id: "satellite-layer",
+            type: "raster",
+            source: "satellite",
+          });
+        }
+  
+        // Adjust brightness and contrast for the raster layer
+        // mapRef.current.setPaintProperty("satellite-layer", "raster-brightness-max", 1.5);
+        // mapRef.current.setPaintProperty("satellite-layer", "raster-brightness-min", 0.8);
+        mapRef.current.setPaintProperty("satellite-layer", "raster-contrast", 1);
+        mapRef.current.setPaintProperty('satellite-layer', 'raster-resampling', 'nearest');
+        mapRef.current.setPaintProperty('satellite-layer', 'raster-saturation', 0.1);
+        mapRef.current.setPaintProperty('satellite-layer', 'raster-opacity', 1);
+      });
+
+      QuickLoadMap();
     }
   }, [streetView]);
 
