@@ -272,7 +272,7 @@ const Index = () => {
         // Adjust brightness and contrast for the raster layer
         // map.setPaintProperty("satellite-layer", "raster-brightness-max", 1.5);
         // map.setPaintProperty("satellite-layer", "raster-brightness-min", 0.8);
-        map.setPaintProperty("satellite-layer", "raster-contrast", 5);
+        map.setPaintProperty("satellite-layer", "raster-contrast", 1);
         map.setPaintProperty('satellite-layer', 'raster-resampling', 'nearest');
         map.setPaintProperty('satellite-layer', 'raster-saturation', 0.1);
         map.setPaintProperty('satellite-layer', 'raster-opacity', 1);
