@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, FormEventHandler, FormEvent } from "react";
 import { BiLayer, BiSearch, BiStreetView } from "react-icons/bi";
 import lasuLogo from "./../assets/lasu.jpg";
 import { HiLocationMarker } from "react-icons/hi";
@@ -30,14 +30,15 @@ const Index = () => {
     lat: 6.466362124948927,
     lng: 3.2003106126389302,
   });
-  const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
-  const userLabelMarkerRef = useRef<mapboxgl.Marker | null>(null);
-
 
   const [showPlaces, setShowPlaces] = useState<boolean>(false);
   const [streetView, setStreetView] = useState<"normal" | "detailed">(
     "detailed"
   );
+  const [coordinates, setCoordinates] = useState<[number, number]>([
+    6.471211177998569, 3.199952782857913,
+  ]);
+  const [searchedLocations, setSearchedLocations] = useState<locationInterface[]>([]);
 
   const locations: locationInterface[] = [
     { name: "Burba Marwa", lat: 6.4731069928423395, lng: 3.2015184369190073 },
@@ -101,6 +102,9 @@ const Index = () => {
     // { name: "Julian Hostel", lat: 6.470652852809963, lng: 3.1957265700758 },
     // { name: "Julian Hostel", lat: 6.470652852809963, lng: 3.1957265700758 },
   ];
+  const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const userLabelMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const mapContainer = useRef(null);
 
   const handleInDivTravelMethodClick = (e: any) => {
     e.stopPropagation();
@@ -116,10 +120,28 @@ const Index = () => {
     e.stopPropagation();
   };
 
-  const mapContainer = useRef(null);
-  const [coordinates, setCoordinates] = useState<[number, number]>([
-    6.471211177998569, 3.199952782857913,
-  ]);
+  const searchLocation = (e: any): any => {
+    let input: HTMLInputElement = e.target as HTMLInputElement;
+    let value: string = input?.value;
+
+    
+      let newArray: locationInterface[] = [];
+      if(value.length > 0){
+        locations.forEach((location: locationInterface) => {
+          if(location.name?.toLowerCase().includes(value.toLowerCase())){
+            newArray.push(location); 
+          }
+        });
+      }
+
+      setSearchedLocations(newArray);
+  }
+
+  const bluSearchInput = () => {
+    setSearchedLocations([]);
+  }
+
+
 
   useEffect(() => {
     // Watch user's location
@@ -182,7 +204,7 @@ const Index = () => {
       // mapbox://styles/mapbox/streets-v11
       return streetView == "detailed"
         ? "mapbox://styles/mapbox/satellite-streets-v12"
-        : "mapbox://styles/mapbox/streets-v12";
+        : "mapbox://styles/mapbox/streets-v12"; // "mapbox://styles/mapbox/light-v10"
     };
 
     mapboxgl.accessToken = apiKey as unknown as string;
@@ -331,7 +353,7 @@ const Index = () => {
   useEffect(() => {
     if (userLocation && userLocation.lng && userLocation.lat) {
       userMarkerRef.current?.setLngLat([userLocation.lng, userLocation.lat]);
-      userLabelMarkerRef.current?.setLngLat([userLocation.lng, userLocation.lat]); // Update label marker as well
+      userLabelMarkerRef.current?.setLngLat([userLocation.lng, userLocation.lat]);
     }
   }, [userLocation]);
 
@@ -346,22 +368,47 @@ const Index = () => {
               src={lasuLogo}
               className={`bg-center bg-no-repeat bg-cover w-14 h-14 mx-2`}
             ></img>
-            <form
-              className={`flex flex-row px-3 rounded-2xl ml-5 border-b border-gray-400`}
-            >
-              <input
-                type="text"
-                className={`bg-transparent text-gray-500 font-light p-2 focus:outline-none flex-grow md:w-64`}
-                placeholder="search..."
-              />
-              <button
-                className={`w-16 h-16 rounded-full text-gray-600 flex items-center justify-center bg-gray-50 hover:border-transparent`}
+            <div className="flex flex-col relative">
+              <form
+                className={`flex flex-row px-3 rounded-2xl ml-5 border-b border-gray-400`}
               >
-                <BiSearch
-                  className={`font-light text-gray-600 text-3xl`}
-                ></BiSearch>
-              </button>
-            </form>
+                <input
+                  type="text"
+                  className={`bg-transparent text-gray-500 font-light p-2 focus:outline-none flex-grow md:w-64`}
+                  placeholder="search..."
+                  onInput={searchLocation}
+                  onBlur={bluSearchInput}
+                  onFocus={searchLocation}
+                />
+                <button
+                  className={`w-16 h-16 rounded-full text-gray-600 flex items-center justify-center bg-gray-50 hover:border-transparent`}
+                >
+                  <BiSearch
+                    className={`font-light text-gray-600 text-3xl`}
+                  ></BiSearch>
+                </button>
+              </form>
+              <div className="flex flex-col rounded-bl-2xl rounded-br-2xl ml-5 bg-gray-50 absolute top-16 z-50 overflow-y-auto w-full">
+                  {
+                    searchedLocations.map((location: locationInterface, index: number) => (
+                      <div
+                        className={`flex flex-row justify-between items-center text-2xl cursor-pointer hover:bg-gray-200 rounded-2xl py-6 w-full`}
+                        onClick={() => {
+                          setSelectedLocation(location);
+                        }}
+                        key={index}
+                      >
+                        <div className={`flex flex-row w-full pl-3`}>
+                          <HiLocationMarker className="font-light text-gray-600 text-3xl mr-5"></HiLocationMarker>
+                          <h3 className={`text-gray-600 font-light`}>
+                            {location.name}
+                          </h3>
+                        </div>
+                      </div>
+                    ))
+                  }
+              </div>
+            </div>
             <div className="flex flex-col fixed bottom-5 right-5 z-50 shadow-lg p-2 rounded-3xl border border-gray-500 bg-gray-50 justify-center items-center md:shadow-none md:static md:rounded-none md:border-none md:flex-row md:bg-transparent">
               <button
                 className={`w-16 h-16 rounded-full text-gray-600 flex items-center justify-center bg-gray-50 hover:border-transparent hover:bg-gray-200 ml-2`}
