@@ -200,7 +200,7 @@ const Index = () => {
         toast.error("Credentials missing!");
         return;
       }
-      return streetView === "detailed"
+      return streetView == "detailed"
         ? "mapbox://styles/mapbox/satellite-streets-v12"
         : "mapbox://styles/mapbox/outdoors-v12";
     };
