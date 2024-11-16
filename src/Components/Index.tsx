@@ -191,46 +191,40 @@ const Index = () => {
         setCoordinates([6.471211177998569, 3.199952782857913]);
       }
     };
-
+  
     getCurrentLocation();
-
+  
     const apiKey = import.meta.env.VITE_MAPBOX_TOKEN;
     const getMapStyle = async () => {
       if (!apiKey) {
         toast.error("Credentials missing!");
         return;
       }
-      // return 'mapbox://styles/mapbox/streets-v12';
-      // mapbox://styles/mapbox/streets-v11
-      return streetView == "detailed"
-        ? "mapbox://styles/mapbox/satellite-v9"  // mapbox://styles/mapbox/satellite-streets-v12
-        : "mapbox://styles/mapbox/outdoors-v12"; // "mapbox://styles/mapbox/light-v10"
+      return streetView === "detailed"
+        ? "mapbox://styles/mapbox/satellite-streets-v12"
+        : "mapbox://styles/mapbox/outdoors-v12";
     };
-
+  
     mapboxgl.accessToken = apiKey as unknown as string;
-
+  
     const initializeMap = async () => {
       const mapStyle = await getMapStyle();
-      if (!mapStyle) return; // Don't initialize map if there's an error
-
+      if (!mapStyle) return;
+  
       const map = new mapboxgl.Map({
         container: mapContainer.current as any,
-        style: mapStyle, // Use the style ID here
-        center: coordinates, // Coordinates are now correctly typed as [number, number]
+        style: mapStyle,
+        center: coordinates,
         zoom: 17,
         maxZoom: 30,
       });
-
+  
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const { latitude, longitude } = position.coords; // Get the actual user latitude and longitude from the position object
-          let location = {
-            lng: longitude,
-            lat: latitude, 
-          };
+          const { latitude, longitude } = position.coords;
+          const location = { lng: longitude, lat: latitude };
           setUserLocation(location);
-      
-          
+  
           map.flyTo({
             center: [selectedLocation.lng as any, selectedLocation.lat as any],
             zoom: 13,
@@ -241,30 +235,53 @@ const Index = () => {
         },
         {
           enableHighAccuracy: true,
-          timeout: 5000,  // Maximum time to wait for a response
-          maximumAge: 0,  // Disables using a cached position
+          timeout: 5000,
+          maximumAge: 0,
         }
       );
-      
-
-      // map.setPaintProperty('raster-layer-id', 'raster-brightness-max', 0.9); // Increase brightness
-      // map.setPaintProperty('raster-layer-id', 'raster-contrast', 1); 
+  
       map.addControl(new mapboxgl.NavigationControl());
-
+  
+      map.on("load", () => {
+        if (!map.getSource("satellite")) {
+          map.addSource("satellite", {
+            type: "raster",
+            tiles: [
+              `https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=${apiKey}`,
+            ],
+            tileSize: 256,
+          });
+  
+          map.addLayer({
+            id: "satellite-layer",
+            type: "raster",
+            source: "satellite",
+          });
+        }
+  
+        // Adjust brightness and contrast for the raster layer
+        // map.setPaintProperty("satellite-layer", "raster-brightness-max", 1.5);
+        // map.setPaintProperty("satellite-layer", "raster-brightness-min", 0.8);
+        map.setPaintProperty("satellite-layer", "raster-contrast", 5);
+        map.setPaintProperty('satellite-layer', 'raster-resampling', 'nearest');
+        map.setPaintProperty('satellite-layer', 'raster-saturation', 0.1);
+        map.setPaintProperty('satellite-layer', 'raster-opacity', 1);
+      });
+  
       if (userLocation) {
         const routeUrl = `https://api.mapbox.com/directions/v5/mapbox/${travelMethod}/${userLocation.lng},${userLocation.lat};${selectedLocation.lng},${selectedLocation.lat}?geometries=geojson&access_token=${apiKey}`;
-
+  
         fetch(routeUrl)
           .then((response) => response.json())
           .then((data) => {
             const route = data.routes[0].geometry;
-
+  
             map.on("load", () => {
               if (map.getLayer("route")) {
                 map.removeLayer("route");
                 map.removeSource("route");
               }
-
+  
               map.addSource("route", {
                 type: "geojson",
                 data: {
@@ -273,23 +290,7 @@ const Index = () => {
                   properties: {},
                 },
               });
-
-              // map.addLayer({
-              //   id: '3d-buildings',
-              //   source: 'composite',
-              //   'source-layer': 'building',
-              //   type: 'fill-extrusion',
-              //   paint: {
-              //     'fill-extrusion-color': '#aaa',
-              //     'fill-extrusion-height': ['get', 'height'],
-              //     'fill-extrusion-base': ['get', 'min_height'],
-              //     'fill-extrusion-opacity': 0.6,
-              //   },
-              // });
-
-
-
-              // Add a layer to display the route
+  
               map.addLayer({
                 id: "route",
                 type: "line",
@@ -305,53 +306,51 @@ const Index = () => {
             toast.error("Error fetching directions:");
           });
       }
-
+  
       locations.forEach((location: locationInterface) => {
         const marker = new mapboxgl.Marker()
           .setLngLat([location.lng as any, location.lat as any])
           .addTo(map);
-
+  
         const label = document.createElement("div");
         label.className = "map-label" as any;
         label.innerText = location.name as any;
-
+  
         new mapboxgl.Marker(label)
           .setLngLat([location.lng as any, location.lat as any])
           .addTo(map);
-
+  
         const popup = new mapboxgl.Popup({ offset: 25 }).setText(
           location.name as any
         );
         marker.setPopup(popup);
       });
-
-      
+  
       const userMarker = new mapboxgl.Marker()
-      .setLngLat([(userLocation as any).lng, (userLocation as any).lat])
-      .addTo(map);
-
+        .setLngLat([(userLocation as any).lng, (userLocation as any).lat])
+        .addTo(map);
+  
       const label = document.createElement("div");
       label.className = "map-label";
       label.innerText = "You";
-
-      // Create a marker with a label for the user location
+  
       const userLabelMarker = new mapboxgl.Marker(label)
-        .setLngLat([(userLocation as any).lng, (userLocation as any).lat]) // Optional chaining to prevent errors
+        .setLngLat([(userLocation as any).lng, (userLocation as any).lat])
         .addTo(map);
-
+  
       userLabelMarkerRef.current = userLabelMarker;
-      // Create a popup for the user marker
+  
       const userMarkerPopup = new mapboxgl.Popup({ offset: 25 }).setText("You");
       userMarker.setPopup(userMarkerPopup);
       userMarkerRef.current = userMarker;
-
-
+  
       return () => {
         map.remove();
       };
     };
     initializeMap();
   }, [travelMethod, selectedLocation, streetView]);
+  
 
 
   useEffect(() => {
