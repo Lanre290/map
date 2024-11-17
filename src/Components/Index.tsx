@@ -141,7 +141,7 @@ const Index = () => {
   }
 
   const bluSearchInput = () => {
-    setShowSearched(true);
+    setShowSearched(false);
   }
 
 
@@ -439,7 +439,7 @@ const Index = () => {
                   {
                     searchedLocations.map((location: locationInterface, index: number) => {
                       return (showSearched && (<div
-                        className={`flex flex-row justify-between items-center text-2xl cursor-pointer hover:bg-gray-200 rounded-2xl py-6 w-full`}
+                        className={`flex flex-row justify-between items-center text-2xl cursor-pointer hover:bg-gray-200 rounded-2xl py-6 w-full z-50`}
                         onClick={() => {
                           setSelectedLocation(location);
                           setShowSearched(false);
@@ -515,7 +515,7 @@ const Index = () => {
           </div>
         </div>
 
-          <div className="fixed z-50 top-24 right-14 rounded-3xl bg-gray-50 gap-x-2 text-gray-500 w-fit flex flex-row items-center p-3">
+          <div className="fixed z-40 top-24 right-14 rounded-3xl bg-gray-50 gap-x-2 text-gray-500 w-fit flex flex-row items-center p-3">
             <HiLocationMarker className="text-gray-500"></HiLocationMarker>
             {selectedLocation.name}
           </div>
