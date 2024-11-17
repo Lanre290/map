@@ -106,6 +106,7 @@ const Index = () => {
   const userLabelMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const mapContainer = useRef(null);
   const mapRef = useRef(null);
+  const [showSearched, setShowSearched] = useState(false);
 
   const handleInDivTravelMethodClick = (e: any) => {
     e.stopPropagation();
@@ -135,11 +136,12 @@ const Index = () => {
         });
       }
 
+      setShowSearched(true);
       setSearchedLocations(newArray);
   }
 
   const bluSearchInput = () => {
-    setSearchedLocations([]);
+    setShowSearched(true);
   }
 
 
@@ -415,6 +417,7 @@ const Index = () => {
             <div className="flex flex-col relative">
               <form
                 className={`flex flex-row px-3 rounded-2xl ml-5 border-b border-gray-400`}
+                onSubmit={(e) => {e.preventDefault()}}
               >
                 <input
                   type="text"
@@ -434,11 +437,12 @@ const Index = () => {
               </form>
               <div className="flex flex-col rounded-bl-2xl rounded-br-2xl ml-5 bg-gray-50 absolute top-16 z-50 overflow-y-auto w-full">
                   {
-                    searchedLocations.map((location: locationInterface, index: number) => (
-                      <div
+                    searchedLocations.map((location: locationInterface, index: number) => {
+                      return (showSearched && (<div
                         className={`flex flex-row justify-between items-center text-2xl cursor-pointer hover:bg-gray-200 rounded-2xl py-6 w-full`}
                         onClick={() => {
                           setSelectedLocation(location);
+                          setShowSearched(false);
                         }}
                         key={index}
                       >
@@ -448,8 +452,8 @@ const Index = () => {
                             {location.name}
                           </h3>
                         </div>
-                      </div>
-                    ))
+                      </div>))
+                    })
                   }
               </div>
             </div>
