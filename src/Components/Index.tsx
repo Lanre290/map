@@ -355,7 +355,7 @@ const Index = () => {
 
         const animate = (timestamp: any) => {
             if (!startTime) startTime = timestamp;
-            const progress = Math.min((timestamp - startTime) / 300, 1); // 300ms duration
+            const progress = Math.min((timestamp - startTime) / 600, 1); // 300ms duration
 
             const lng = currentLngLat.lng + progress * (targetLngLat[0] - currentLngLat.lng);
             const lat = currentLngLat.lat + progress * (targetLngLat[1] - currentLngLat.lat);
