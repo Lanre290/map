@@ -4,7 +4,7 @@ import lasuLogo from "./../assets/lasu.jpg";
 import { HiLocationMarker } from "react-icons/hi";
 import { BsPersonWalking } from "react-icons/bs";
 import { IoBicycle, IoCar } from "react-icons/io5";
-import mapboxgl from "mapbox-gl";
+import mapboxgl, { Marker } from "mapbox-gl";
 import { toast } from "react-toastify";
 
 const Index = () => {
@@ -337,22 +337,51 @@ const Index = () => {
       });
   
       const userMarker = new mapboxgl.Marker()
+    .setLngLat([(userLocation as any).lng, (userLocation as any).lat])
+    .addTo(map);
+
+    const label = document.createElement("div");
+    label.className = "map-label";
+    label.innerText = "You";
+
+    const userLabelMarker = new mapboxgl.Marker(label)
         .setLngLat([(userLocation as any).lng, (userLocation as any).lat])
         .addTo(map);
-  
-      const label = document.createElement("div");
-      label.className = "map-label";
-      label.innerText = "You";
-  
-      const userLabelMarker = new mapboxgl.Marker(label)
-        .setLngLat([(userLocation as any).lng, (userLocation as any).lat])
-        .addTo(map);
-  
-      userLabelMarkerRef.current = userLabelMarker;
-  
-      const userMarkerPopup = new mapboxgl.Popup({ offset: 25 }).setText("You");
-      userMarker.setPopup(userMarkerPopup);
-      userMarkerRef.current = userMarker;
+
+    // Function to smoothly move the marker
+    const smoothMoveMarker = (marker: Marker, targetLngLat: any) => {
+        const currentLngLat = marker.getLngLat();
+        let startTime:any;
+
+        const animate = (timestamp: any) => {
+            if (!startTime) startTime = timestamp;
+            const progress = Math.min((timestamp - startTime) / 300, 1); // 300ms duration
+
+            const lng = currentLngLat.lng + progress * (targetLngLat[0] - currentLngLat.lng);
+            const lat = currentLngLat.lat + progress * (targetLngLat[1] - currentLngLat.lat);
+
+            marker.setLngLat([lng, lat]);
+
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                marker.setLngLat(targetLngLat); // Ensure exact position at the end
+            }
+        };
+
+        requestAnimationFrame(animate);
+    };
+
+    // Set up references and apply smooth movement
+    const targetLngLat = [(userLocation as any).lng, (userLocation as any).lat];
+    smoothMoveMarker(userMarker, targetLngLat);
+    smoothMoveMarker(userLabelMarker, targetLngLat);
+
+    const userMarkerPopup = new mapboxgl.Popup({ offset: 25 }).setText("You");
+    userMarker.setPopup(userMarkerPopup);
+    userMarkerRef.current = userMarker;
+    userLabelMarkerRef.current = userLabelMarker;
+
   
       return () => {
         map.remove();
