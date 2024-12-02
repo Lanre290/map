@@ -1,6 +1,59 @@
-.travel_radio:not(:checked){
+.travel_radio:not(:checked) {
   background-color: transparent;
   accent-color: transparent;
   color: transparent;
   background: transparent;
+}
+
+.name_tag {
+  position: relative;
+  width: 100%;
+  padding: 10px;
+  opacity: 1;
+  margin-bottom: 4px;
+}
+
+/* Triangle positioned at the top center by default */
+.name_tag::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 10px solid white;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* For smaller screens, move the triangle to the left */
+@media (max-width: 465px) {
+  .name_tag::after {
+    right: -100%;
+    left: 98%;
+    transform: rotateZ(90deg);
+    top: 17px;
+    margin-top: 42px;
+}
+}
+
+@media (min-width: 465px) and (max-width: 495px) {
+  .name_tag::after {
+    right: -6%;
+    left: auto;
+    transform: rotateZ(90deg);
+    top: 30.5px;
+    margin-top: 27px;
+}
+}
+
+@media (min-width: 495px) and (max-width: 768px) {
+  .name_tag::after {
+    right: -6%;
+    left: auto;
+    transform: rotateZ(90deg);
+    top: 2.5px;
+    margin-top: 27px;
+}
 }
